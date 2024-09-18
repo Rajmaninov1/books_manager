@@ -43,18 +43,18 @@ This Python script is designed to process PDF files of manga, handling tasks suc
 
 ## Functions
 
-- `is_not_manga(img)`: Detects if an image is likely from a manga or a webcomic based on aspect ratio and color content.
-- `detect_blank_spaces(image, threshold=240)`: Detects horizontal blank spaces in an image.
-- `crop_image_by_blank_space(img)`: Crops an image by trimming white space.
-- `split_image_by_blank_spaces(img, page_num, img_index, output_folder, threshold=240, min_gap=20)`: Splits an image by detecting horizontal blank spaces.
-- `extract_and_crop_images_from_pdf(pdf_path, output_folder)`: Extracts images from a PDF, crops them, and saves them.
-- `delete_images_in_folder(folder_path, extensions=("png", "jpg", "jpeg", "bmp", "gif"))`: Deletes all image files in a specified folder.
-- `compress_pdf(input_pdf, output_pdf, image_quality=75)`: Compresses a PDF file to optimize storage.
-- `images_to_pdf(image_folder, output_pdf_path)`: Combines images from a folder into a single PDF.
-- `extract_manga_name(filename)`: Extracts and cleans up the manga name from a file name.
-- `has_explicit_content(text)`: Identifies explicit content in a string.
-- `process_manga(file_path)`: Processes a single manga file by extracting images, cropping, splitting, and compressing.
-- `process_files_concurrently(file_paths, max_workers=5)`: Processes multiple manga files concurrently.
+- `is_not_manga`: Detects if an image is likely from a manga or a webcomic based on aspect ratio and color content.
+- `detect_blank_spaces`: Detects horizontal blank spaces in an image.
+- `crop_image_by_blank_space`: Crops an image by trimming white space.
+- `split_image_by_blank_spaces`: Splits an image by detecting horizontal blank spaces.
+- `extract_and_crop_images_from_pdf`: Extracts images from a PDF, crops them, and saves them.
+- `delete_images_in_folder`: Deletes all image files in a specified folder.
+- `compress_pdf`: Compresses a PDF file to optimize storage.
+- `images_to_pdf`: Combines images from a folder into a single PDF.
+- `extract_manga_name`: Extracts and cleans up the manga name from a file name.
+- `has_explicit_content`: Identifies explicit content in a string.
+- `process_manga`: Processes a single manga file by extracting images, cropping, splitting, and compressing.
+- `process_files_concurrently`: Processes multiple manga files concurrently.
 
 ## Notes
 
