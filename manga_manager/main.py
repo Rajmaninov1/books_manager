@@ -6,7 +6,7 @@ from manga_manager.manga_processor.env_vars import input_mangas_folder_path, out
 from manga_manager.manga_processor.manga_processor import process_manga
 
 logger = logging.getLogger('_manga_manager_')
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def process_files_concurrently(

@@ -4,7 +4,7 @@ import os
 from io import BytesIO
 
 import fitz
-from PDFNetPython3.PDFNetPython import PDFNet, PDFDoc, Optimizer, SDFDoc, ImageSettings
+import pikepdf
 from pymupdf import Document
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from manga_manager.img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image
 )
-from manga_manager.manga_processor.env_vars import pdf_net_python_key, final_document_width, final_document_height
+from manga_manager.manga_processor.env_vars import final_document_width, final_document_height
 
 logger = logging.getLogger('_manga_manager_')
 
@@ -75,7 +75,7 @@ def split_crop_save_images_to_pdf(
                             # Create an in-memory bytes object
                             image_buffer = BytesIO()
                             # Save the PIL image to buffer in JPEG format (or appropriate format)
-                            split_image.save(image_buffer, format='JPG', optimize=True, quality=75)
+                            split_image.save(image_buffer, format='JPEG', optimize=True, quality=75)
                             image_buffer.seek(0)  # Seek to the start of the BytesIO object
 
                             # Convert the BytesIO object to an ImageReader object that ReportLab can understand
@@ -110,56 +110,28 @@ def split_crop_save_images_to_pdf(
         raise
 
 
-def compress_pdf(input_pdf_path: str, output_pdf_path: str, grayscale=False, resolution=150, quality=75):
+def compress_pdf(input_pdf_path: str, output_pdf_path: str, image_quality: int = 75):
     """
-    Compresses a PDF file with settings optimized for digital ink devices.
+    Compress a PDF by downsampling images.
 
-    :param input_pdf_path: Path to the input PDF file.
-    :param output_pdf_path: Path to save the compressed PDF.
-    :param grayscale: Whether to convert images to grayscale (default False).
-    :param resolution: Target resolution (default 150 DPI).
-    :param quality: JPEG quality for compression (default 75).
-    :return: None
+    :param input_pdf_path: Path to the input PDF file (uncompressed).
+    :param output_pdf_path: Path to save the compressed PDF file.
+    :param image_quality: Image quality for compression (1-100).
     """
     try:
-        if not os.path.exists(input_pdf_path):
-            logger.error(f"Input PDF file does not exist: {input_pdf_path}")
-            raise FileNotFoundError(f"{input_pdf_path} not found.")
+        # Open the PDF
+        with pikepdf.open(input_pdf_path) as pdf:
+            # Iterate over each page to compress images
+            for page in pdf.pages:
+                for image in page.images.values():
+                    # Apply image compression settings (e.g., downsample and set quality)
+                    image.compress(jpeg=True, quality=image_quality)
 
-        logger.info(f"Starting compression for PDF: {input_pdf_path}")
-        PDFNet.Initialize(pdf_net_python_key)
-        doc = PDFDoc(input_pdf_path)
+            # Save the compressed PDF
+            pdf.save(output_pdf_path)
 
-        if not doc.InitSecurityHandler():
-            logger.error(f"Failed to initialize security handler for PDF: {input_pdf_path}")
-            raise RuntimeError(f"Cannot initialize security handler for {input_pdf_path}")
-
-        # Image settings for optimization
-        image_settings = ImageSettings()
-
-        # Set grayscale conversion if needed
-        if grayscale:
-            image_settings.SetColorSpaceConversion(ImageSettings.e_gray)
-
-        # Set image downsampling and resolution
-        image_settings.SetDownsampleMode(ImageSettings.e_default)
-        image_settings.SetResolution(resolution)
-
-        # Set JPEG quality for compression (higher value = better quality, larger size)
-        image_settings.SetCompressionMode(ImageSettings.e_jpeg)
-        image_settings.SetQuality(quality)
-
-        # Optimize the PDF using the specified image settings
-        optimizer_settings = Optimizer.OptimizerSettings()
-        optimizer_settings.SetColorImageSettings(image_settings)
-        optimizer_settings.SetGrayscaleImageSettings(image_settings)
-
-        Optimizer.Optimize(doc, optimizer_settings)
-        doc.Save(output_pdf_path, SDFDoc.e_linearized)
-        doc.Close()
-
-        logger.info(f"Compression completed successfully for PDF: {output_pdf_path}")
+        logger.info(f"Successfully compressed PDF: {output_pdf_path}")
 
     except Exception as e:
-        logger.error(f"Error occurred during PDF compression: {input_pdf_path} - {e}")
+        logger.error(f"Error occurred while compressing PDF: {e}")
         raise

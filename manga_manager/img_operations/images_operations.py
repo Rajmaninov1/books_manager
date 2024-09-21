@@ -191,7 +191,7 @@ def split_image_by_blank_or_dark_spaces(
         threshold_light=240,
         threshold_dark=15,
         min_gap=20,
-        min_segment_height=50
+        min_segment_height=75
 ) -> list[ImageFile]:
     """
     Splits an image into segments wherever horizontal blank spaces are found,
@@ -230,13 +230,13 @@ def split_and_crop_image(image: ImageFile, page_num: int, img_index: int) -> lis
         if page_num != 0 and is_not_manga(image):
             for image_segment in split_image_by_blank_or_dark_spaces(image=image):
                 # Apply denoising and sharpening after cropping
-                denoised_sharpened_image = denoise_and_sharpen_image(image_segment)
-                images.append(denoised_sharpened_image)
+                # denoised_sharpened_image = denoise_and_sharpen_image(image_segment)
+                images.append(image_segment)
         else:
             image_cropped = enhance_image_for_screen(crop_image_by_blank_or_dark_space(image))
             # Apply denoising and sharpening after cropping
-            denoised_sharpened_image = denoise_and_sharpen_image(image_cropped)
-            images.append(denoised_sharpened_image)
+            # denoised_sharpened_image = denoise_and_sharpen_image(image_cropped)
+            images.append(image_cropped)
     except Exception as e:
         logger.error(f"Error processing image on page {page_num + 1}: {e}", exc_info=True)
     return images
