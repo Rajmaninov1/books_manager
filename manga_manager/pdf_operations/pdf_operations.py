@@ -11,7 +11,11 @@ from reportlab.pdfgen import canvas
 from manga_manager.img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image
 )
-from manga_manager.manga_processor.env_vars import final_document_width, final_document_height
+from manga_manager.manga_processor.env_vars import (
+    final_document_width,
+    final_document_height,
+    image_quality
+)
 
 logger = logging.getLogger('_manga_manager_')
 
@@ -42,15 +46,11 @@ def split_crop_save_images_to_pdf(
         pdf_path: str,
         new_pdf_path: str,
         screen_width=final_document_width,
-        screen_height=final_document_height
+        screen_height=final_document_height,
+        image_quality_=image_quality
 ):
     """
-    Extracts images from a PDF, crops them based on blank space, and saves them.
-
-    :param new_pdf_path:
-    :param screen_height:
-    :param screen_width:
-    :param pdf_path: Path to the PDF file.
+    Extracts images from a PDF, crops them based on blank or dark space, and saves them.
     """
     try:
         if not os.path.exists(pdf_path):
@@ -74,7 +74,7 @@ def split_crop_save_images_to_pdf(
                             # Create an in-memory bytes object
                             image_buffer = BytesIO()
                             # Save the PIL image to buffer in JPEG format (or appropriate format)
-                            split_image.save(image_buffer, format='JPEG', optimize=True, quality=75)
+                            split_image.save(image_buffer, format='JPEG', optimize=True, quality=image_quality_)
                             image_buffer.seek(0)  # Seek to the start of the BytesIO object
 
                             # Convert the BytesIO object to an ImageReader object that ReportLab can understand
