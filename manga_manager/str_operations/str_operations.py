@@ -25,7 +25,7 @@ def extract_manga_name(filename: str) -> str:
 
         # Replace - and _ with space, and remove extra spaces
         manga_name = re.sub(r'[-_]+', ' ', manga_name).strip()
-        manga_name = re.sub(r'\s+', ' ', manga_name)
+        manga_name = re.sub(r'\s+', ' ', manga_name).title()
 
         logger.info(f"Extracted manga name: {manga_name}")
         return manga_name

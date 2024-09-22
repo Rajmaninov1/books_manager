@@ -4,7 +4,7 @@ import os
 
 import cv2
 import numpy as np
-from PIL import Image, ImageStat
+from PIL import Image, ImageFilter
 from PIL.ImageFile import ImageFile
 
 from manga_manager.manga_processor.env_vars import final_document_width, final_document_height
@@ -12,24 +12,44 @@ from manga_manager.manga_processor.env_vars import final_document_width, final_d
 logger = logging.getLogger('_manga_manager_')
 
 
-def average_brightness(image: Image.Image) -> float:
+def average_brightness(region: Image.Image) -> float:
     """
-    Calculates the average brightness of an image.
+    Computes the average brightness of an image region.
+
+    Brightness is computed as the mean of the grayscale values.
     """
-    grayscale_image = image.convert('L')  # Convert the image to grayscale
-    stat = ImageStat.Stat(grayscale_image)
-    return stat.mean[0]  # Return the average brightness
+    grayscale = region.convert("L")
+    histogram = grayscale.histogram()
+    pixels = sum(histogram)
+    brightness = sum(i * histogram[i] for i in range(256)) / pixels
+    return brightness
 
 
-def best_background_for_image(image: Image.Image) -> tuple[int, int, int]:
+def best_background_for_image(image: Image.Image, corner_size: int = 50) -> tuple[int, int, int]:
     """
-    Determines whether an image looks better on a black or white background based on average brightness.
+    Determines whether an image looks better on a black or white background based on the brightness
+    of the corners.
+
+    Args:
+    - image: The input image.
+    - corner_size: The size of the square region to extract from each corner.
 
     Returns:
     - (0, 0, 0) for black background.
     - (255, 255, 255) for white background.
     """
-    avg_brightness = average_brightness(image)
+    width, height = image.size
+
+    # Define the four corner boxes (left-top, right-top, left-bottom, right-bottom)
+    corners = [
+        image.crop((0, 0, corner_size, corner_size)),  # Top-left
+        image.crop((width - corner_size, 0, width, corner_size)),  # Top-right
+        image.crop((0, height - corner_size, corner_size, height)),  # Bottom-left
+        image.crop((width - corner_size, height - corner_size, width, height))  # Bottom-right
+    ]
+
+    # Calculate average brightness for each corner and then average the results
+    avg_brightness = sum(average_brightness(corner) for corner in corners) / len(corners)
 
     # Calculate contrast with white and black backgrounds
     contrast_with_white = abs(255 - avg_brightness)  # White background contrast
@@ -53,23 +73,18 @@ def denoise_and_sharpen_image(image: ImageFile, denoise_strength=10, sharpen_str
     - sharpen_strength: Strength for sharpening the image.
     """
     try:
-        # Convert PIL Image to OpenCV format
-        image_cv = cv2.cvtColor(np.array(image, dtype=np.uint8), cv2.COLOR_RGB2BGR)
+        # 1. Denoise the image using OpenCV (fastNlMeansDenoisingColored)
+        image_cv = np.array(image)
+        denoised_image = cv2.fastNlMeansDenoisingColored(image_cv, None, 10, 10, 7, 21)
 
-        # Apply denoising using Non-Local Means Denoising (or Bilateral Filter)
-        image_denoised = cv2.fastNlMeansDenoisingColored(image_cv, None, denoise_strength, denoise_strength, 7, 21)
+        # Convert back to PIL for further processing
+        image_denoised = Image.fromarray(denoised_image)
 
-        # Sharpen the image using a kernel
-        sharpening_kernel = np.array([[-1, -1, -1],
-                                      [-1, 9 + sharpen_strength, -1],
-                                      [-1, -1, -1]])
-        image_sharpened = cv2.filter2D(image_denoised, -1, sharpening_kernel)
-
-        # Convert back to PIL Image
-        image_sharpened_pil = Image.fromarray(cv2.cvtColor(image_sharpened, cv2.COLOR_BGR2RGB))
+        # 2. Sharpen the image using Pillow's built-in filter
+        image_sharpened = image_denoised.filter(ImageFilter.SHARPEN)
 
         logger.info('Image denoised and sharpened.')
-        return image_sharpened_pil
+        return image_sharpened
     except Exception as e:
         logger.error(f'Error in denoise_and_sharpen_image: {e}', exc_info=True)
         return image
@@ -161,26 +176,41 @@ def enhance_image_for_screen(img, screen_width=final_document_width, screen_heig
     """
     try:
         img_width, img_height = img.size
+
+        # Ensure the image dimensions are valid
+        if img_width <= 0 or img_height <= 0:
+            raise ValueError(f"Invalid image dimensions: width={img_width}, height={img_height}")
+
+        # Ensure the screen dimensions are valid
+        if screen_width <= 0 or screen_height <= 0:
+            raise ValueError(f"Invalid screen dimensions: width={screen_width}, height={screen_height}")
+
         img_aspect_ratio = img_width / img_height
         screen_aspect_ratio = screen_width / screen_height
 
+        # Maintain aspect ratio
         if img_aspect_ratio > screen_aspect_ratio:
             new_width = screen_width
-            new_height = int(screen_width / img_aspect_ratio)
+            new_height = max(1, int(screen_width / img_aspect_ratio))  # Avoid zero/negative height
         else:
             new_height = screen_height
-            new_width = int(screen_height * img_aspect_ratio)
+            new_width = max(1, int(screen_height * img_aspect_ratio))  # Avoid zero/negative width
 
         resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Create a new image with the screen size and background color matching the best background for the image
         new_img = Image.new(
             mode="RGB", size=(screen_width, screen_height), color=best_background_for_image(resized_img)
         )
+
+        # Center the resized image on the screen
         paste_x = (screen_width - new_width) // 2
         paste_y = (screen_height - new_height) // 2
-
         new_img.paste(resized_img, (paste_x, paste_y))
+
         logger.info("Image enhanced for screen.")
         return new_img
+
     except Exception as e:
         logger.error(f"Error in enhance_image_for_screen: {e}", exc_info=True)
         return img
@@ -190,12 +220,10 @@ def split_image_by_blank_or_dark_spaces(
         image,
         threshold_light=240,
         threshold_dark=15,
-        min_gap=20,
-        min_segment_height=75
+        min_gap=20
 ) -> list[ImageFile]:
     """
-    Splits an image into segments wherever horizontal blank spaces are found,
-    avoiding tiny segments smaller than min_segment_height.
+    Splits an image into segments wherever horizontal blank spaces are found
     """
     try:
         blank_spaces = detect_blank_or_dark_spaces(image, threshold_light, threshold_dark)
@@ -204,17 +232,15 @@ def split_image_by_blank_or_dark_spaces(
         cropped_images = []
 
         for i in range(1, len(split_positions)):
-            if split_positions[i] - split_positions[i - 1] > min_gap:
-                segment = image.crop((0, split_positions[i - 1], image.width, split_positions[i]))
+            try:
+                if split_positions[i] - split_positions[i - 1] > min_gap:
+                    segment = image.crop((0, split_positions[i - 1], image.width, split_positions[i]))
 
-                # Check the height of the segment before processing
-                if segment.height >= min_segment_height:
                     segment_cropped = crop_image_by_blank_or_dark_space(segment)
                     segment_enhanced = enhance_image_for_screen(segment_cropped)
                     cropped_images.append(segment_enhanced)
-                else:
-                    logger.warning(
-                        f"Skipped segment due to small height: {segment.height} (min required: {min_segment_height})")
+            except IndexError:
+                break
 
         logger.info(f"Split image into {len(cropped_images)} segments.")
         return cropped_images
@@ -230,13 +256,13 @@ def split_and_crop_image(image: ImageFile, page_num: int, img_index: int) -> lis
         if page_num != 0 and is_not_manga(image):
             for image_segment in split_image_by_blank_or_dark_spaces(image=image):
                 # Apply denoising and sharpening after cropping
-                # denoised_sharpened_image = denoise_and_sharpen_image(image_segment)
-                images.append(image_segment)
+                denoised_sharpened_image = denoise_and_sharpen_image(image_segment)
+                images.append(denoised_sharpened_image)
         else:
             image_cropped = enhance_image_for_screen(crop_image_by_blank_or_dark_space(image))
             # Apply denoising and sharpening after cropping
-            # denoised_sharpened_image = denoise_and_sharpen_image(image_cropped)
-            images.append(image_cropped)
+            denoised_sharpened_image = denoise_and_sharpen_image(image_cropped)
+            images.append(denoised_sharpened_image)
     except Exception as e:
         logger.error(f"Error processing image on page {page_num + 1}: {e}", exc_info=True)
     return images

@@ -4,7 +4,6 @@ import os
 from io import BytesIO
 
 import fitz
-import pikepdf
 from pymupdf import Document
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -41,14 +40,14 @@ def doc_pages_generator(doc: Document):
 
 def split_crop_save_images_to_pdf(
         pdf_path: str,
-        new_not_compressed_pdf_path: str,
+        new_pdf_path: str,
         screen_width=final_document_width,
         screen_height=final_document_height
 ):
     """
     Extracts images from a PDF, crops them based on blank space, and saves them.
 
-    :param new_not_compressed_pdf_path:
+    :param new_pdf_path:
     :param screen_height:
     :param screen_width:
     :param pdf_path: Path to the PDF file.
@@ -64,7 +63,7 @@ def split_crop_save_images_to_pdf(
                 logger.warning(f"PDF {pdf_path} has no pages.")
                 return
 
-            c = canvas.Canvas(new_not_compressed_pdf_path, pagesize=(screen_width, screen_height))
+            c = canvas.Canvas(new_pdf_path, pagesize=(screen_width, screen_height))
 
             for page_num, img_index, image_data in doc_pages_generator(doc):
                 logger.info(f"Processing image {img_index} on page {page_num}.")
@@ -107,31 +106,4 @@ def split_crop_save_images_to_pdf(
 
     except Exception as e:
         logger.error(f"Error occurred while extracting images from PDF: {pdf_path} - {e}")
-        raise
-
-
-def compress_pdf(input_pdf_path: str, output_pdf_path: str, image_quality: int = 75):
-    """
-    Compress a PDF by downsampling images.
-
-    :param input_pdf_path: Path to the input PDF file (uncompressed).
-    :param output_pdf_path: Path to save the compressed PDF file.
-    :param image_quality: Image quality for compression (1-100).
-    """
-    try:
-        # Open the PDF
-        with pikepdf.open(input_pdf_path) as pdf:
-            # Iterate over each page to compress images
-            for page in pdf.pages:
-                for image in page.images.values():
-                    # Apply image compression settings (e.g., downsample and set quality)
-                    image.compress(jpeg=True, quality=image_quality)
-
-            # Save the compressed PDF
-            pdf.save(output_pdf_path)
-
-        logger.info(f"Successfully compressed PDF: {output_pdf_path}")
-
-    except Exception as e:
-        logger.error(f"Error occurred while compressing PDF: {e}")
         raise

@@ -11,3 +11,5 @@ output_mangas_folder_path = os.getenv('OUTPUT_MANGAS_FOLDER_PATH', 'default/outp
 # Ensure these values are integers and handle any possible errors with defaults
 final_document_width = int(os.getenv('FINAL_DOCUMENT_WIDTH', 1600)) // 2
 final_document_height = int(os.getenv('FINAL_DOCUMENT_HEIGHT', 2400)) // 2
+
+file_size_comparison: dict[str, int] = dict()
