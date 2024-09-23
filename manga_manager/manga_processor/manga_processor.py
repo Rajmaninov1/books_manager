@@ -2,7 +2,7 @@ import logging
 import os
 
 from manga_manager.files_operations.files_operations import get_file_size
-from manga_manager.manga_processor.env_vars import file_size_comparison
+from manga_manager.files_operations.env_vars import file_size_comparison
 from manga_manager.pdf_operations.pdf_operations import split_crop_save_images_to_pdf
 from manga_manager.str_operations.str_operations import (
     extract_manga_name,

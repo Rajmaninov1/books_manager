@@ -11,7 +11,7 @@ from reportlab.pdfgen import canvas
 from manga_manager.img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image
 )
-from manga_manager.manga_processor.env_vars import (
+from manga_manager.files_operations.env_vars import (
     FINAL_DOCUMENT_WIDTH,
     FINAL_DOCUMENT_HEIGHT,
     IMAGE_QUALITY

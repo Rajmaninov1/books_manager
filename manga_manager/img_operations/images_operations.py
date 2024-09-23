@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageFilter, ImageEnhance
 from PIL.ImageFile import ImageFile
 
-from manga_manager.manga_processor.env_vars import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
+from manga_manager.files_operations.env_vars import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
     SATURATION_FACTOR
 
 logger = logging.getLogger('_manga_manager_')
