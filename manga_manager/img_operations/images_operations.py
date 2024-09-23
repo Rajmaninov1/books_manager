@@ -78,8 +78,14 @@ def denoise_and_sharpen_image(
     - sharpen_strength: Strength for sharpening the image.
     """
     try:
+        image_saturated = image
+        if use_saturation_filter:
+            # 3. Enhance saturation (specific to color e-readers like Kobo Libra Colour)
+            enhancer = ImageEnhance.Color(image_saturated)
+            image_saturated = enhancer.enhance(saturation_factor)
+
         # 1. Denoise the image using OpenCV (fastNlMeansDenoisingColored)
-        image_cv = np.array(image)
+        image_cv = np.array(image_saturated)
         denoised_image = cv2.fastNlMeansDenoisingColored(image_cv, None, 10, 10, 7, 21)
 
         # Convert back to PIL for further processing
@@ -87,15 +93,9 @@ def denoise_and_sharpen_image(
 
         # 2. Sharpen the image using Pillow's built-in filter
         image_sharpened = image_denoised.filter(ImageFilter.SHARPEN)
-        image_saturated = image_sharpened
-
-        if use_saturation_filter:
-            # 3. Enhance saturation (specific to color e-readers like Kobo Libra Colour)
-            enhancer = ImageEnhance.Color(image_saturated)
-            image_saturated = enhancer.enhance(saturation_factor)
 
         logger.info('Image denoised and sharpened.')
-        return image_saturated
+        return image_sharpened
     except Exception as e:
         logger.error(f'Error in denoise_and_sharpen_image: {e}', exc_info=True)
         return image
