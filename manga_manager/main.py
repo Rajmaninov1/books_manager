@@ -3,10 +3,10 @@ import logging
 import os
 from datetime import datetime
 
-from manga_manager.files_operations.files_operations import compare_file_sizes
-from manga_manager.files_operations.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, \
+from files_operations.files_operations import compare_file_sizes
+from files_operations.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, \
     file_size_comparison
-from manga_manager.manga_processor.manga_processor import process_manga
+from manga_processor.manga_processor import process_manga
 
 logger = logging.getLogger('_manga_manager_')
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')

@@ -8,10 +8,10 @@ from pymupdf import Document
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from manga_manager.img_operations.images_operations import (
+from img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image
 )
-from manga_manager.files_operations.env_vars import (
+from files_operations.env_vars import (
     FINAL_DOCUMENT_WIDTH,
     FINAL_DOCUMENT_HEIGHT,
     IMAGE_QUALITY
