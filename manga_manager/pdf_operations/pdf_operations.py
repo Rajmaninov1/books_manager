@@ -12,9 +12,9 @@ from manga_manager.img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image
 )
 from manga_manager.manga_processor.env_vars import (
-    final_document_width,
-    final_document_height,
-    image_quality
+    FINAL_DOCUMENT_WIDTH,
+    FINAL_DOCUMENT_HEIGHT,
+    IMAGE_QUALITY
 )
 
 logger = logging.getLogger('_manga_manager_')
@@ -45,9 +45,9 @@ def doc_pages_generator(doc: Document):
 def split_crop_save_images_to_pdf(
         pdf_path: str,
         new_pdf_path: str,
-        screen_width=final_document_width,
-        screen_height=final_document_height,
-        image_quality_=image_quality
+        screen_width=FINAL_DOCUMENT_WIDTH,
+        screen_height=FINAL_DOCUMENT_HEIGHT,
+        image_quality_=IMAGE_QUALITY
 ):
     """
     Extracts images from a PDF, crops them based on blank or dark space, and saves them.

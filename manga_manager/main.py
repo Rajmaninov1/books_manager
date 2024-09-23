@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 from manga_manager.files_operations.files_operations import compare_file_sizes
-from manga_manager.manga_processor.env_vars import input_mangas_folder_path, output_mangas_folder_path, \
+from manga_manager.manga_processor.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, \
     file_size_comparison
 from manga_manager.manga_processor.manga_processor import process_manga
 
@@ -59,24 +59,24 @@ else:
     logger.info(f'Detected {workers} CPU cores. Using this for max workers.')
 
 # List all file paths from the input folder
-if not os.path.exists(input_mangas_folder_path):
-    logger.warning(f'Input folder does not exist: {input_mangas_folder_path}. Exiting.')
+if not os.path.exists(INPUT_MANGAS_FOLDER_PATH):
+    logger.warning(f'Input folder does not exist: {INPUT_MANGAS_FOLDER_PATH}. Exiting.')
 else:
     file_paths = [
-        os.path.join(input_mangas_folder_path, file)
-        for file in os.listdir(input_mangas_folder_path)
-        if os.path.isfile(os.path.join(input_mangas_folder_path, file))
+        os.path.join(INPUT_MANGAS_FOLDER_PATH, file)
+        for file in os.listdir(INPUT_MANGAS_FOLDER_PATH)
+        if os.path.isfile(os.path.join(INPUT_MANGAS_FOLDER_PATH, file))
     ]
 
     if not file_paths:
-        logger.warning(f'No files found in the input folder: {input_mangas_folder_path}. Exiting.')
+        logger.warning(f'No files found in the input folder: {INPUT_MANGAS_FOLDER_PATH}. Exiting.')
     else:
-        logger.info(f'Found {len(file_paths)} files in the input folder: {input_mangas_folder_path}')
+        logger.info(f'Found {len(file_paths)} files in the input folder: {INPUT_MANGAS_FOLDER_PATH}')
 
         try:
             process_files_concurrently(
                 file_paths_to_process=file_paths,
-                destiny_folder_path=output_mangas_folder_path,
+                destiny_folder_path=OUTPUT_MANGAS_FOLDER_PATH,
                 max_workers=workers  # Adjust max_workers based on system capability
             )
             logger.info('All files processed successfully.')

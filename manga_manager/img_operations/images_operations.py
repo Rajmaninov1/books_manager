@@ -4,10 +4,11 @@ import os
 
 import cv2
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageEnhance
 from PIL.ImageFile import ImageFile
 
-from manga_manager.manga_processor.env_vars import final_document_width, final_document_height
+from manga_manager.manga_processor.env_vars import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
+    SATURATION_FACTOR
 
 logger = logging.getLogger('_manga_manager_')
 
@@ -63,7 +64,11 @@ def best_background_for_image(image: Image.Image, corner_size: int = 50) -> tupl
 
 
 
-def denoise_and_sharpen_image(image: ImageFile, denoise_strength=10, sharpen_strength=2) -> Image:
+def denoise_and_sharpen_image(
+        image: ImageFile,
+        use_saturation_filter: bool = USE_SATURATION_FILTER,
+        saturation_factor: float = SATURATION_FACTOR
+) -> Image:
     """
     Denoises and sharpens an image after cropping.
 
@@ -82,9 +87,15 @@ def denoise_and_sharpen_image(image: ImageFile, denoise_strength=10, sharpen_str
 
         # 2. Sharpen the image using Pillow's built-in filter
         image_sharpened = image_denoised.filter(ImageFilter.SHARPEN)
+        image_saturated = image_sharpened
+
+        if use_saturation_filter:
+            # 3. Enhance saturation (specific to color e-readers like Kobo Libra Colour)
+            enhancer = ImageEnhance.Color(image_saturated)
+            image_saturated = enhancer.enhance(saturation_factor)
 
         logger.info('Image denoised and sharpened.')
-        return image_sharpened
+        return image_saturated
     except Exception as e:
         logger.error(f'Error in denoise_and_sharpen_image: {e}', exc_info=True)
         return image
@@ -170,7 +181,7 @@ def crop_image_by_blank_or_dark_space(image, blank_threshold=240, dark_threshold
         return image
 
 
-def enhance_image_for_screen(img, screen_width=final_document_width, screen_height=final_document_height) -> Image:
+def enhance_image_for_screen(img, screen_width=FINAL_DOCUMENT_WIDTH, screen_height=FINAL_DOCUMENT_HEIGHT) -> Image:
     """
     Enhances an image to fit a screen with given resolution pixels while maintaining the aspect ratio.
     """
