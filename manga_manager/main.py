@@ -52,7 +52,7 @@ def process_files_concurrently(
 
 start_time = datetime.now()
 
-workers = os.cpu_count()
+workers = os.cpu_count() // 2
 if workers < 2:
     logger.warning(f'Low CPU core count detected: {workers} cores. Processing may be slower.')
 else:
