@@ -10,7 +10,7 @@ from PIL.ImageFile import ImageFile
 from settings import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
     SATURATION_FACTOR, NOISE_THRESHOLD
 
-logger = logging.getLogger('_manga_manager_')
+logger = logging.getLogger('_books_manager_')
 
 
 def average_brightness(region: Image.Image) -> float:

@@ -1,15 +1,15 @@
 import logging
 import os
 
-from files_operations.files_operations import get_file_size
+from common.files_operations import get_file_size
 from settings import file_size_comparison
-from pdf_operations.pdf_operations import split_crop_save_images_to_pdf
-from str_operations.str_operations import (
+from manga_manager.manga_pdf_operations import split_crop_save_images_to_pdf
+from manga_manager.manga_str_operations import (
     extract_manga_name,
     has_explicit_content
 )
 
-logger = logging.getLogger('_manga_manager_')
+logger = logging.getLogger('_books_manager_')
 
 
 def process_manga(file_path: str, destiny_folder_path: str) -> None:

@@ -4,12 +4,14 @@ import os
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
-from manga_manager.files_operations.files_operations import compare_file_sizes, is_pdf_file, folder_contains_only_images
+from book_manager.book_manager import process_book
+from common.files_operations import compare_file_sizes, is_pdf_file, folder_contains_only_images
+from common.pdf_operations import is_text_pdf
 from settings import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, file_size_comparison
 from manga_manager.manga_processor import process_manga
 
 # Set up logger with rotating file handler
-logger = logging.getLogger('_manga_manager_')
+logger = logging.getLogger('_books_manager_')
 # 5MB log file with 2 backups
 log_handler = RotatingFileHandler('manga_manager.log', maxBytes=5 * 1024 * 1024, backupCount=2)
 log_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
@@ -41,10 +43,12 @@ def process_files_concurrently(
     logger.info(f'Starting concurrent processing of {len(file_paths_to_process)} files with {max_workers} workers.')
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [
-            executor.submit(process_manga, file_path, destiny_folder_path)
-            for file_path in file_paths_to_process
-        ]
+        futures = []
+        for file_path in file_paths_to_process:
+            if is_text_pdf(file_path):
+                futures.append(executor.submit(process_book, file_path, destiny_folder_path))
+            else:
+                futures.append(executor.submit(process_manga, file_path, destiny_folder_path))
 
         # Wait for all futures to complete and handle any exceptions
         for future in concurrent.futures.as_completed(futures):

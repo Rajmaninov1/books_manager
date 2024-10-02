@@ -1,7 +1,7 @@
 import re
 import logging
 
-logger = logging.getLogger('_manga_manager_')
+logger = logging.getLogger('_books_manager_')
 
 
 def extract_manga_name(filename: str) -> str:

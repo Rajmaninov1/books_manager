@@ -22,6 +22,8 @@ def get_env_var(var_name: str, default: str, cast_type: type):
 # Constants for image quality checks
 NOISE_THRESHOLD: int = get_env_var('NOISE_THRESHOLD', '10', int)
 
+TEXT_THRESHOLD: int = get_env_var('TEXT_THRESHOLD', '100', int)
+
 # Access the environment variables with fallback/default values
 INPUT_MANGAS_FOLDER_PATH: str = get_env_var('INPUT_MANGAS_FOLDER_PATH', './books/pending_to_process', str)
 OUTPUT_MANGAS_FOLDER_PATH: str = get_env_var('OUTPUT_MANGAS_FOLDER_PATH', './books/', str)
@@ -36,6 +38,11 @@ USE_SATURATION_FILTER: bool = (
     os.getenv('USE_SATURATION_FILTER', 'false').strip().lower() in ['true', '1', 't', 'y', 'yes']
 )
 SATURATION_FACTOR: float = get_env_var('SATURATION_FACTOR', '1.5', float)
+
+# Control creating extra epub file version
+CREATE_EPUB_FILE: bool = (
+    os.getenv('CREATE_EPUB_FILE', 'false').strip().lower() in ['true', '1', 't', 'y', 'yes']
+)
 
 # Initialize a dictionary for file size comparison
 file_size_comparison: dict[str, int] = {}
