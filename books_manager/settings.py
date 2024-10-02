@@ -40,8 +40,8 @@ USE_SATURATION_FILTER: bool = (
 SATURATION_FACTOR: float = get_env_var('SATURATION_FACTOR', '1.5', float)
 
 # Control creating extra epub file version
-CREATE_EPUB_FILE: bool = (
-    os.getenv('CREATE_EPUB_FILE', 'false').strip().lower() in ['true', '1', 't', 'y', 'yes']
+CREATE_EPUB_FILES: bool = (
+    os.getenv('CREATE_EPUB_FILES', 'false').strip().lower() in ['true', '1', 't', 'y', 'yes']
 )
 
 # Initialize a dictionary for file size comparison

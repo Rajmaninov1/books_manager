@@ -1,4 +1,6 @@
 chardet==5.2.0
+EbookLib==0.18
+lxml==5.3.0
 natsort==8.4.0
 numpy==2.1.1
 opencv-python==4.10.0.84
@@ -7,3 +9,4 @@ PyMuPDF==1.24.10
 PyMuPDFb==1.24.10
 python-dotenv==1.0.1
 reportlab==4.2.2
+six==1.16.0

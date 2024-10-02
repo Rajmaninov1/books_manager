@@ -1,8 +1,9 @@
 import logging
 import os
 
+from common.epub_operations import convert_pdf_to_epub
 from common.files_operations import get_file_size
-from settings import file_size_comparison
+from settings import file_size_comparison, CREATE_EPUB_FILES
 from manga_manager.manga_pdf_operations import split_crop_save_images_to_pdf
 from manga_manager.manga_str_operations import (
     extract_manga_name,
@@ -50,6 +51,9 @@ def process_manga(file_path: str, destiny_folder_path: str) -> None:
             for file in os.listdir(file_path):
                 os.remove(os.path.join(file_path, file))
             os.rmdir(file_path)
+
+        if CREATE_EPUB_FILES:
+            convert_pdf_to_epub(new_pdf_path, new_pdf_path.replace('.pdf', '.epub'))
 
         # Update the new file size for comparison
         file_size_comparison[f'{manga_name} new'] = file_size_comparison.get(f'{manga_name} new', 0) + get_file_size(new_pdf_path)

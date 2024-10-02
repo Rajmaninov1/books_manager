@@ -1,6 +1,5 @@
 import os
 import logging
-from io import BytesIO
 import fitz  # PyMuPDF
 from ebooklib import epub
 

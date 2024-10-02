@@ -1,8 +1,9 @@
 import logging
 import os
 
+from common.epub_operations import convert_pdf_to_epub
 from common.files_operations import get_file_size
-from settings import file_size_comparison
+from settings import file_size_comparison, CREATE_EPUB_FILES
 from book_manager.book_pdf_operations import reduce_pdf_margins
 from book_manager.book_str_operations import extract_book_name_from_path
 
@@ -45,6 +46,9 @@ def process_book(file_path: str, destiny_folder_path: str) -> None:
 
         # Clean up: delete the original PDF file
         os.remove(file_path)
+
+        if CREATE_EPUB_FILES:
+            convert_pdf_to_epub(new_pdf_path, new_pdf_path.replace('.pdf', '.epub'))
 
         # Update the new file size for comparison
         file_size_comparison[f'{book_name} new'] = file_size_comparison.get(f'{book_name} new', 0) + get_file_size(new_pdf_path)
