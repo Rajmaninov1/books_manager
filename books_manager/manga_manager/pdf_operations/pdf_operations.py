@@ -9,7 +9,7 @@ from pymupdf import Document
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from img_operations.images_operations import (
+from manga_manager.img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image, load_image_by_path
 )
 from settings import (
