@@ -25,8 +25,8 @@ NOISE_THRESHOLD: int = get_env_var('NOISE_THRESHOLD', '10', int)
 TEXT_THRESHOLD: int = get_env_var('TEXT_THRESHOLD', '100', int)
 
 # Access the environment variables with fallback/default values
-INPUT_MANGAS_FOLDER_PATH: str = get_env_var('INPUT_MANGAS_FOLDER_PATH', './books/pending_to_process', str)
-OUTPUT_MANGAS_FOLDER_PATH: str = get_env_var('OUTPUT_MANGAS_FOLDER_PATH', './books/', str)
+INPUT_MANGAS_FOLDER_PATH: str = get_env_var('INPUT_MANGAS_FOLDER_PATH', '../books/pending_to_process', str)
+OUTPUT_MANGAS_FOLDER_PATH: str = get_env_var('OUTPUT_MANGAS_FOLDER_PATH', '../books/', str)
 
 # Ensure these values are integers and handle any possible errors with defaults
 FINAL_DOCUMENT_WIDTH: int = get_env_var('FINAL_DOCUMENT_WIDTH', '1200', int) // 2

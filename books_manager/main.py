@@ -80,12 +80,7 @@ else:
     file_paths = [
         os.path.join(input_folder, item)
         for item in os.listdir(input_folder)
-        if (
-                   os.path.isfile(os.path.join(input_folder, item)) and is_pdf_file(item)
-           ) or (
-                   os.path.isdir(os.path.join(input_folder, item)) and folder_contains_only_images(
-               os.path.join(input_folder, item))
-           )
+        if (folder_contains_only_images(os.path.join(input_folder, item))) or (is_pdf_file(os.path.join(input_folder, item)))
     ]
 
     if not file_paths:
@@ -110,6 +105,6 @@ logger.info(f'Execution time: {time_of_execution}')
 
 # Print and log file size comparisons
 size_comparison = compare_file_sizes(file_size_comparison)
-print('Files sizes comparison per manga series')
+print('Files sizes comparison per series')
 print(size_comparison)
 logger.info(f'File sizes comparison: {size_comparison}')
