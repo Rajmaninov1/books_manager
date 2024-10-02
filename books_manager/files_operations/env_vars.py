@@ -13,9 +13,9 @@ INPUT_MANGAS_FOLDER_PATH: str = os.getenv('INPUT_MANGAS_FOLDER_PATH', './books/p
 OUTPUT_MANGAS_FOLDER_PATH: str = os.getenv('OUTPUT_MANGAS_FOLDER_PATH', './books/')
 
 # Ensure these values are integers and handle any possible errors with defaults
-FINAL_DOCUMENT_WIDTH: int = int(os.getenv('FINAL_DOCUMENT_WIDTH', 1600)) // 2
-FINAL_DOCUMENT_HEIGHT: int = int(os.getenv('FINAL_DOCUMENT_HEIGHT', 2400)) // 2
-IMAGE_QUALITY: int = int(os.getenv('IMAGE_QUALITY', 95))
+FINAL_DOCUMENT_WIDTH: int = int(os.getenv('FINAL_DOCUMENT_WIDTH', 1200)) // 2
+FINAL_DOCUMENT_HEIGHT: int = int(os.getenv('FINAL_DOCUMENT_HEIGHT', 1600)) // 2
+IMAGE_QUALITY: int = int(os.getenv('IMAGE_QUALITY', 80))
 
 # control saturation filter with these variables
 USE_SATURATION_FILTER: bool = (

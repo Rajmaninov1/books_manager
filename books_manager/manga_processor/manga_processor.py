@@ -12,9 +12,7 @@ from str_operations.str_operations import (
 logger = logging.getLogger('_manga_manager_')
 
 
-def process_manga(
-        file_path: str, destiny_folder_path: str
-) -> None:
+def process_manga(file_path: str, destiny_folder_path: str) -> None:
     try:
         # Create output folder path, file name and extracts manga name from file name
         file_name_with_extension = os.path.basename(file_path)
