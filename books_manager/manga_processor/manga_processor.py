@@ -18,16 +18,20 @@ def process_manga(
     try:
         # Create output folder path, file name and extracts manga name from file name
         file_name_with_extension = os.path.basename(file_path)
+
+        # Extract the manga name from the file name or folder name
         manga_name = extract_manga_name(file_name_with_extension.replace('.pdf', ''))
+
+        # Record the original file size for comparison
         file_size_comparison[f'{manga_name} original'] = file_size_comparison.get(f'{manga_name} original', 0) + get_file_size(file_path)
 
-        # Change path for explicit content files
+        # Handle explicit content by placing it in a separate folder
         if has_explicit_content(file_name_with_extension):
             output_folder_path = os.path.join(destiny_folder_path, 'X', manga_name)
         else:
             output_folder_path = os.path.join(destiny_folder_path, manga_name)
 
-        # Create temp path for new not compressed pdf
+        # Create the new PDF path (can be the same for both PDFs and images converted to PDFs)
         new_pdf_path = os.path.join(output_folder_path, file_name_with_extension)
 
         # Create output folders if they don't exist
@@ -35,16 +39,23 @@ def process_manga(
 
         logger.info(f'Starting image extraction and processing for {file_name_with_extension}')
 
-        # Extract, split and crop images from the PDF and save them in the output folder
+        # Extract, split, crop images from the PDF or folder of images, and save them as a new PDF
         split_crop_save_images_to_pdf(
-            pdf_path=file_path,
+            input_path=file_path,  # Can be a PDF file or a folder containing images
             new_pdf_path=new_pdf_path,
         )
 
-        # Clean up: delete unnecessary files
-        os.remove(file_path)
+        # Clean up: delete original file (PDF or folder)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        elif os.path.isdir(file_path):
+            for file in os.listdir(file_path):
+                os.remove(os.path.join(file_path, file))
+            os.rmdir(file_path)
 
+        # Update the new file size for comparison
         file_size_comparison[f'{manga_name} new'] = file_size_comparison.get(f'{manga_name} new', 0) + get_file_size(new_pdf_path)
+
         logger.info(f'Successfully processed {file_name_with_extension} and cleaned up temporary files.')
 
     except Exception as e:

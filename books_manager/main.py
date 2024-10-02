@@ -2,21 +2,26 @@ import concurrent.futures
 import logging
 import os
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
-from files_operations.files_operations import compare_file_sizes
-from files_operations.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, \
-    file_size_comparison
+from files_operations.files_operations import compare_file_sizes, is_pdf_file, folder_contains_only_images
+from files_operations.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, file_size_comparison
 from manga_processor.manga_processor import process_manga
 
+# Set up logger with rotating file handler
 logger = logging.getLogger('_manga_manager_')
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+# 5MB log file with 2 backups
+log_handler = RotatingFileHandler('manga_manager.log', maxBytes=5 * 1024 * 1024, backupCount=2)
+log_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+logger.addHandler(log_handler)
+logger.setLevel(logging.ERROR)  # Set to ERROR to minimize cron job log output
 
 
 def process_files_concurrently(
         *,
         file_paths_to_process: list[str],
         destiny_folder_path: str,
-        max_workers=5
+        max_workers=2
 ):
     """
     Processes a list of files concurrently using a thread pool.
@@ -50,48 +55,57 @@ def process_files_concurrently(
                 logger.error(f'File processing generated an exception: {exc}')
                 logger.warning('There was an issue processing one of the files. Continuing with other files.')
 
+
 start_time = datetime.now()
 
+# Define number of workers based on CPU count
 workers = os.cpu_count() // 2
 if workers < 2:
     logger.warning(f'Low CPU core count detected: {workers} cores. Processing may be slower.')
 else:
     logger.info(f'Detected {workers} CPU cores. Using this for max workers.')
 
-# List all file paths from the input folder
-if not os.path.exists(INPUT_MANGAS_FOLDER_PATH):
-    logger.warning(f'Input folder does not exist: {INPUT_MANGAS_FOLDER_PATH}. Exiting.')
+# Ensure input and output folders are absolute paths
+input_folder = os.path.abspath(INPUT_MANGAS_FOLDER_PATH)
+output_folder = os.path.abspath(OUTPUT_MANGAS_FOLDER_PATH)
+
+# List all valid file paths (PDF files and folders with images) from the input folder
+if not os.path.exists(input_folder):
+    logger.warning(f'Input folder does not exist: {input_folder}. Exiting.')
 else:
     file_paths = [
-        os.path.join(INPUT_MANGAS_FOLDER_PATH, file)
-        for file in os.listdir(INPUT_MANGAS_FOLDER_PATH)
-        if os.path.isfile(os.path.join(INPUT_MANGAS_FOLDER_PATH, file))
+        os.path.join(input_folder, item)
+        for item in os.listdir(input_folder)
+        if (
+                   os.path.isfile(os.path.join(input_folder, item)) and is_pdf_file(item)
+           ) or (
+                   os.path.isdir(os.path.join(input_folder, item)) and folder_contains_only_images(
+               os.path.join(input_folder, item))
+           )
     ]
 
     if not file_paths:
-        logger.warning(f'No files found in the input folder: {INPUT_MANGAS_FOLDER_PATH}. Exiting.')
+        logger.warning(f'No valid PDFs or folders with images found in the input folder: {input_folder}. Exiting.')
     else:
-        logger.info(f'Found {len(file_paths)} files in the input folder: {INPUT_MANGAS_FOLDER_PATH}')
+        logger.info(
+            f'Found {len(file_paths)} valid items (PDFs or folders with images) in the input folder: {input_folder}')
 
         try:
             process_files_concurrently(
                 file_paths_to_process=file_paths,
-                destiny_folder_path=OUTPUT_MANGAS_FOLDER_PATH,
-                max_workers=workers  # Adjust max_workers based on system capability
+                destiny_folder_path=output_folder,
+                max_workers=workers
             )
             logger.info('All files processed successfully.')
         except Exception as e:
             logger.error(f'An error occurred during concurrent file processing: {e}')
 
+# Calculate and log execution time
 time_of_execution = datetime.now() - start_time
+logger.info(f'Execution time: {time_of_execution}')
 
-# Convert time_of_execution to hours, minutes, seconds, and milliseconds
-hours, remainder = divmod(time_of_execution.total_seconds(), 3600)
-minutes, seconds = divmod(remainder, 60)
-milliseconds = time_of_execution.microseconds // 1000
-
-# Human-readable format
-readable_time = f'{int(hours)}h {int(minutes)}m {int(seconds)}s {milliseconds}ms'
-print(f'Execution time: {readable_time}')
+# Print and log file size comparisons
+size_comparison = compare_file_sizes(file_size_comparison)
 print('Files sizes comparison per manga series')
-print(compare_file_sizes(file_size_comparison))
+print(size_comparison)
+logger.info(f'File sizes comparison: {size_comparison}')

@@ -1,9 +1,44 @@
 import os
 
+from books_manager.files_operations.env_vars import IMAGE_EXTENSIONS
+
+
+def is_image_file(file):
+    """Check if the file is an image."""
+    return file.lower().endswith(IMAGE_EXTENSIONS)
+
+def folder_contains_only_images(folder_path):
+    """Check if a folder contains only image files."""
+    if not os.path.isdir(folder_path):
+        return False
+    return all(is_image_file(file) for file in os.listdir(folder_path))
+
+def is_pdf_file(file):
+    """Check if the file is a PDF."""
+    return os.path.isfile(file) and file.lower().endswith('.pdf')
+
 
 def get_file_size(file_path: str) -> int:
-    # Get file size in bytes
-    return os.path.getsize(file_path)
+    """
+        Get the size of a file or folder in bytes.
+
+        :param file_path: Path to the file or folder.
+        :return: Total size in bytes.
+        """
+    if os.path.isfile(file_path):
+        # If it's a file, return its size
+        return os.path.getsize(file_path)
+    elif os.path.isdir(file_path):
+        # If it's a folder, sum up the sizes of all the files inside it
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(file_path):
+            for filename in filenames:
+                file_full_path = os.path.join(dirpath, filename)
+                total_size += os.path.getsize(file_full_path)
+        return total_size
+    else:
+        # If the path doesn't exist or is invalid, return 0
+        return 0
 
 def convert_bytes(size_in_bytes: int) -> str:
     """

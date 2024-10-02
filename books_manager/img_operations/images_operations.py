@@ -355,16 +355,13 @@ def load_images_list_by_path(
 
 
 def load_image_by_path(
-        *,
         image_file_path: str,
-        image_folder_path: str
 ) -> Image:
     """
     Load a single image by its path.
     """
     try:
-        full_path = os.path.join(image_folder_path, image_file_path)
-        image = Image.open(full_path).convert('RGB')
+        image = Image.open(image_file_path).convert('RGB')
         logger.info(f"Loaded image: {image_file_path}")
         return image
     except Exception as e:

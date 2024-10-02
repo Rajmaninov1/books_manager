@@ -4,12 +4,13 @@ import os
 from io import BytesIO
 
 import fitz
+from natsort import natsorted
 from pymupdf import Document
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 from img_operations.images_operations import (
-    load_image_by_str_data, split_and_crop_image
+    load_image_by_str_data, split_and_crop_image, load_image_by_path
 )
 from files_operations.env_vars import (
     FINAL_DOCUMENT_WIDTH,
@@ -42,15 +43,10 @@ def doc_pages_generator(doc: Document):
                 continue
 
 
-def split_crop_save_images_to_pdf(
-        pdf_path: str,
-        new_pdf_path: str,
-        screen_width=FINAL_DOCUMENT_WIDTH,
-        screen_height=FINAL_DOCUMENT_HEIGHT,
-        image_quality_=IMAGE_QUALITY
-):
+def process_pdf(pdf_path: str, new_pdf_path: str, screen_width=FINAL_DOCUMENT_WIDTH,
+                screen_height=FINAL_DOCUMENT_HEIGHT, image_quality_=IMAGE_QUALITY):
     """
-    Extracts images from a PDF, crops them based on blank or dark space, and saves them.
+    Process PDF file: Extract images, split, crop and save them into a new PDF.
     """
     try:
         if not os.path.exists(pdf_path):
@@ -107,3 +103,65 @@ def split_crop_save_images_to_pdf(
     except Exception as e:
         logger.error(f"Error occurred while extracting images from PDF: {pdf_path} - {e}")
         raise
+
+
+def process_image_folder(image_folder_path: str, new_pdf_path: str, screen_width=FINAL_DOCUMENT_WIDTH,
+                         screen_height=FINAL_DOCUMENT_HEIGHT, image_quality_=IMAGE_QUALITY):
+    """
+    Process a folder of images and save them into a new PDF.
+    """
+    image_files = [f for f in os.listdir(image_folder_path) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp'))]
+
+    if not image_files:
+        logger.warning(f"No images found in the folder: {image_folder_path}")
+        return
+
+    # Human sort the image paths using natsorted
+    image_files = natsorted(image_files)
+
+    c = canvas.Canvas(new_pdf_path, pagesize=(screen_width, screen_height))
+
+    for image_file in image_files:
+        image_path = os.path.join(image_folder_path, image_file)
+        try:
+            with load_image_by_path(image_path) as img:
+                img = img.convert("RGB")
+
+                # Split and crop the image if needed
+                split_images = split_and_crop_image(img, 0, 0)
+                for split_image in split_images:
+                    image_buffer = BytesIO()
+                    split_image.save(image_buffer, format='JPEG', optimize=True, quality=image_quality_)
+                    image_buffer.seek(0)
+
+                    image_reader = ImageReader(image_buffer)
+                    c.drawImage(image_reader, x=0, y=0, width=screen_width, height=screen_height)
+                    c.showPage()
+
+                    image_buffer.close()
+                    split_image.close()
+
+            img.close()
+
+        except Exception as e:
+            logger.error(f"Error processing image {image_file}: {e}")
+
+        gc.collect()  # Trigger garbage collection after each image
+
+    c.save()
+    logger.info(f"Image folder processed and saved to PDF: {new_pdf_path}")
+
+
+def split_crop_save_images_to_pdf(input_path: str, new_pdf_path: str):
+    """
+    Determine if the input path is a folder (with images) or a PDF file,
+    and process it accordingly.
+    """
+    if os.path.isdir(input_path):
+        logger.info(f"Processing folder with images: {input_path}")
+        process_image_folder(input_path, new_pdf_path)
+    elif os.path.isfile(input_path) and input_path.lower().endswith('.pdf'):
+        logger.info(f"Processing PDF file: {input_path}")
+        process_pdf(input_path, new_pdf_path)
+    else:
+        logger.error(f"Invalid input path: {input_path}. Must be a folder with images or a PDF file.")
