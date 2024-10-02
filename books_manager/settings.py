@@ -21,7 +21,6 @@ def get_env_var(var_name: str, default: str, cast_type: type):
 
 # Constants for image quality checks
 NOISE_THRESHOLD: int = get_env_var('NOISE_THRESHOLD', '10', int)
-SHARPNESS_THRESHOLD: float = get_env_var('SHARPNESS_THRESHOLD', '1.5', float)
 
 # Access the environment variables with fallback/default values
 INPUT_MANGAS_FOLDER_PATH: str = get_env_var('INPUT_MANGAS_FOLDER_PATH', './books/pending_to_process', str)
@@ -46,7 +45,6 @@ print(f"Loaded configuration:\n"
       f"  INPUT_MANGAS_FOLDER_PATH: {INPUT_MANGAS_FOLDER_PATH}\n"
       f"  OUTPUT_MANGAS_FOLDER_PATH: {OUTPUT_MANGAS_FOLDER_PATH}\n"
       f"  NOISE_THRESHOLD: {NOISE_THRESHOLD}\n"
-      f"  SHARPNESS_THRESHOLD: {SHARPNESS_THRESHOLD}\n"
       f"  FINAL_DOCUMENT_WIDTH: {FINAL_DOCUMENT_WIDTH}\n"
       f"  FINAL_DOCUMENT_HEIGHT: {FINAL_DOCUMENT_HEIGHT}\n"
       f"  IMAGE_QUALITY: {IMAGE_QUALITY}\n"

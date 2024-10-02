@@ -5,7 +5,7 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 from files_operations.files_operations import compare_file_sizes, is_pdf_file, folder_contains_only_images
-from files_operations.env_vars import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, file_size_comparison
+from settings import INPUT_MANGAS_FOLDER_PATH, OUTPUT_MANGAS_FOLDER_PATH, file_size_comparison
 from manga_processor.manga_processor import process_manga
 
 # Set up logger with rotating file handler

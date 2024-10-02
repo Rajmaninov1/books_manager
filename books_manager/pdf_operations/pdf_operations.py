@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from img_operations.images_operations import (
     load_image_by_str_data, split_and_crop_image, load_image_by_path
 )
-from files_operations.env_vars import (
+from settings import (
     FINAL_DOCUMENT_WIDTH,
     FINAL_DOCUMENT_HEIGHT,
     IMAGE_QUALITY

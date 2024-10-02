@@ -1,6 +1,6 @@
 import os
 
-from books_manager.files_operations.env_vars import IMAGE_EXTENSIONS
+from settings import IMAGE_EXTENSIONS
 
 
 def is_image_file(file):

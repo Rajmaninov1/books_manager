@@ -7,8 +7,8 @@ import numpy as np
 from PIL import Image, ImageFilter, ImageEnhance
 from PIL.ImageFile import ImageFile
 
-from files_operations.env_vars import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
-    SATURATION_FACTOR
+from settings import FINAL_DOCUMENT_WIDTH, FINAL_DOCUMENT_HEIGHT, USE_SATURATION_FILTER, \
+    SATURATION_FACTOR, NOISE_THRESHOLD
 
 logger = logging.getLogger('_manga_manager_')
 
@@ -63,9 +63,30 @@ def best_background_for_image(image: Image.Image, corner_size: int = 50) -> tupl
         return 255, 255, 255  # Image looks better on a white background
 
 
+def calculate_noise(image_cv: np.ndarray) -> float:
+    """
+    Calculate the noise level of the image using variance of the Laplacian.
+    """
+    gray = cv2.cvtColor(image_cv, cv2.COLOR_BGR2GRAY)
+    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+    return laplacian_var
+
+
+def is_image_good_quality(image: Image) -> bool:
+    """
+    Determine if the image quality is good based on noise level and sharpness.
+    """
+    image_cv = np.array(image)
+    noise_level = calculate_noise(image_cv)
+
+    logger.debug(f'Noise level: {noise_level}')
+
+    # Check if the noise level is below the threshold
+    return noise_level < NOISE_THRESHOLD
+
 
 def denoise_and_sharpen_image(
-        image: ImageFile,
+        image: Image,
         use_saturation_filter: bool = USE_SATURATION_FILTER,
         saturation_factor: float = SATURATION_FACTOR
 ) -> Image:
@@ -74,15 +95,20 @@ def denoise_and_sharpen_image(
 
     Parameters:
     - image: The cropped image as a PIL Image.
-    - denoise_strength: Strength for denoising the image.
-    - sharpen_strength: Strength for sharpening the image.
+    - use_saturation_filter: Whether to apply saturation enhancement.
+    - saturation_factor: The factor by which to enhance saturation.
     """
     try:
         image_saturated = image
         if use_saturation_filter:
-            # 3. Enhance saturation (specific to color e-readers like Kobo Libra Colour)
+            # Enhance saturation (specific to color e-readers like Kobo Libra Colour)
             enhancer = ImageEnhance.Color(image_saturated)
             image_saturated = enhancer.enhance(saturation_factor)
+
+        # Check if the image is of good quality
+        if is_image_good_quality(image_saturated):
+            logger.info('Image quality is good; skipping denoising.')
+            return image_saturated
 
         # 1. Denoise the image using OpenCV (fastNlMeansDenoisingColored)
         image_cv = np.array(image_saturated)

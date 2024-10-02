@@ -2,7 +2,7 @@ import logging
 import os
 
 from files_operations.files_operations import get_file_size
-from files_operations.env_vars import file_size_comparison
+from settings import file_size_comparison
 from pdf_operations.pdf_operations import split_crop_save_images_to_pdf
 from str_operations.str_operations import (
     extract_manga_name,
