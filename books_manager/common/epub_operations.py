@@ -7,13 +7,12 @@ from ebooklib import epub
 logger = logging.getLogger('pdf_to_epub_converter')
 
 
-def convert_pdf_to_epub(pdf_path: str, epub_path: str, image_quality: int = 100):
+def convert_pdf_to_epub(pdf_path: str, epub_path: str):
     """
     Convert a PDF file to an EPUB file by extracting images and adding them to the EPUB.
 
     :param pdf_path: Path to the input PDF file.
     :param epub_path: Path to save the output EPUB file.
-    :param image_quality: Quality of the images saved in the EPUB (1 to 100).
     """
     try:
         if not os.path.exists(pdf_path):
@@ -25,7 +24,7 @@ def convert_pdf_to_epub(pdf_path: str, epub_path: str, image_quality: int = 100)
         # Create an EPUB book
         book = epub.EpubBook()
         book.set_identifier('id123456')
-        book.set_title('Converted EPUB')
+        book.set_title('a')
         book.set_language('en')
 
         # Open the PDF
@@ -54,8 +53,6 @@ def convert_pdf_to_epub(pdf_path: str, epub_path: str, image_quality: int = 100)
                         # Save image to the EPUB
                         img_item = epub.EpubImage()
                         img_item.set_content(image_data)
-                        img_item.set_id(image_name)
-                        img_item.set_name(image_name)
                         book.add_item(img_item)
 
                         # Create a new chapter for each image
