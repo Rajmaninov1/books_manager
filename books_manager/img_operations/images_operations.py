@@ -321,20 +321,6 @@ def temporal_pdf_image(image_path: str, width: int, height: int) -> str:
         return temp_img_path
 
 
-def image_generator(
-        *,
-        image_files_paths: list[str],
-        image_folder_path: str
-):
-    """Lazy loads and yields images one at a time."""
-    for image_file_path in image_files_paths:
-        logger.info(f"Processing image file: {image_file_path}")
-        with load_image_by_path(image_folder_path=image_folder_path, image_file_path=image_file_path) as image:
-            image = image.convert('RGB')
-            yield image.copy()
-            image.close()
-
-
 def load_images_list_by_path(
         *,
         image_files_paths: list[str],

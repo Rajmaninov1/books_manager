@@ -8,19 +8,47 @@ load_dotenv()
 # Define image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp')
 
+
+# Function to safely retrieve and cast environment variables with default values
+def get_env_var(var_name: str, default: str, cast_type: type):
+    """Retrieve an environment variable, with a default value and type casting."""
+    value = os.getenv(var_name, default)
+    try:
+        return cast_type(value)
+    except ValueError as e:
+        raise ValueError(f"Error converting environment variable '{var_name}' to {cast_type.__name__}: {value}") from e
+
+
+# Constants for image quality checks
+NOISE_THRESHOLD: int = get_env_var('NOISE_THRESHOLD', '10', int)
+SHARPNESS_THRESHOLD: float = get_env_var('SHARPNESS_THRESHOLD', '1.5', float)
+
 # Access the environment variables with fallback/default values
-INPUT_MANGAS_FOLDER_PATH: str = os.getenv('INPUT_MANGAS_FOLDER_PATH', './books/pending_to_process')
-OUTPUT_MANGAS_FOLDER_PATH: str = os.getenv('OUTPUT_MANGAS_FOLDER_PATH', './books/')
+INPUT_MANGAS_FOLDER_PATH: str = get_env_var('INPUT_MANGAS_FOLDER_PATH', './books/pending_to_process', str)
+OUTPUT_MANGAS_FOLDER_PATH: str = get_env_var('OUTPUT_MANGAS_FOLDER_PATH', './books/', str)
 
 # Ensure these values are integers and handle any possible errors with defaults
-FINAL_DOCUMENT_WIDTH: int = int(os.getenv('FINAL_DOCUMENT_WIDTH', 1200)) // 2
-FINAL_DOCUMENT_HEIGHT: int = int(os.getenv('FINAL_DOCUMENT_HEIGHT', 1600)) // 2
-IMAGE_QUALITY: int = int(os.getenv('IMAGE_QUALITY', 80))
+FINAL_DOCUMENT_WIDTH: int = get_env_var('FINAL_DOCUMENT_WIDTH', '1200', int) // 2
+FINAL_DOCUMENT_HEIGHT: int = get_env_var('FINAL_DOCUMENT_HEIGHT', '1600', int) // 2
+IMAGE_QUALITY: int = get_env_var('IMAGE_QUALITY', '80', int)
 
-# control saturation filter with these variables
+# Control saturation filter with these variables
 USE_SATURATION_FILTER: bool = (
-        os.getenv('USE_SATURATION_FILTER', str('false')).lower() in ['true', '1', 't', 'y', 'yes']
+    os.getenv('USE_SATURATION_FILTER', 'false').strip().lower() in ['true', '1', 't', 'y', 'yes']
 )
-SATURATION_FACTOR: float = float(os.getenv('SATURATION_FACTOR', 1.5))  # Adjust this value for desired saturation level (1.5 for moderate boost)
+SATURATION_FACTOR: float = get_env_var('SATURATION_FACTOR', '1.5', float)
 
-file_size_comparison: dict[str, int] = dict()
+# Initialize a dictionary for file size comparison
+file_size_comparison: dict[str, int] = {}
+
+# Log loaded configuration (optional)
+print(f"Loaded configuration:\n"
+      f"  INPUT_MANGAS_FOLDER_PATH: {INPUT_MANGAS_FOLDER_PATH}\n"
+      f"  OUTPUT_MANGAS_FOLDER_PATH: {OUTPUT_MANGAS_FOLDER_PATH}\n"
+      f"  NOISE_THRESHOLD: {NOISE_THRESHOLD}\n"
+      f"  SHARPNESS_THRESHOLD: {SHARPNESS_THRESHOLD}\n"
+      f"  FINAL_DOCUMENT_WIDTH: {FINAL_DOCUMENT_WIDTH}\n"
+      f"  FINAL_DOCUMENT_HEIGHT: {FINAL_DOCUMENT_HEIGHT}\n"
+      f"  IMAGE_QUALITY: {IMAGE_QUALITY}\n"
+      f"  USE_SATURATION_FILTER: {USE_SATURATION_FILTER}\n"
+      f"  SATURATION_FACTOR: {SATURATION_FACTOR}\n")
